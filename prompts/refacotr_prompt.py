@@ -1,11 +1,11 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional
-
+from langchain_core.prompts import ChatPromptTemplate
 
 class RefactorResults(BaseModel):
     new_code: str = Field(description="The complete refactored code.")
     commit_message: str = Field(description="A brief, professional git commit message.")
-    explanation: str = Field(description="Internal note on why these changes were made.")
+    explanation: str = Field(description="A 1-sentence Internal note on why these changes were made.")
 
 
 class ReviewResults(BaseModel):

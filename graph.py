@@ -2,7 +2,7 @@ import os
 
 from langgraph.graph import StateGraph, START, END
 
-from nodes import discovery, editor, prmanager, reviewer, strategy
+from nodes import discovery, selector, refractor
 from state import AgentState
 
 
@@ -11,8 +11,19 @@ from state import AgentState
 graph = StateGraph(AgentState)
 
 graph.add_node("Discovery", discovery)
+graph.add_node("Selector", selector)
+graph.add_node("Refractor", refractor)
+
 graph.set_entry_point("Discovery")
-graph.add_edge("Discovery", END)
+
+
+# Edges
+
+# START -> Discovery -> Selector -> END
+graph.add_edge("Discovery", "Selector")
+graph.add_edge("Selector", "Refractor")
+graph.add_edge("Refractor", END)
+
 
 app = graph.compile()
 

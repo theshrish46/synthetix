@@ -2,17 +2,13 @@ from typing import TypedDict
 from langgraph.graph import START, END, StateGraph
 from dotenv import load_dotenv
 from IPython.display import Image
-from langchain_groq import ChatGroq
+
 from langchain.agents import create_agent
 
 import os
 
 load_dotenv()
 
-llm = ChatGroq(
-    model="llama-3.3-70b-versatile",
-    temperature=0.2
-)
 
 
 

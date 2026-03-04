@@ -1,0 +1,16 @@
+### REFACTORING TASK
+File Name: {filename}
+Language: {language}
+
+### ORIGINAL SOURCE CODE:
+---
+{original_code}
+---
+
+### EXECUTION STEPS:
+1. Analyze the 'ORIGINAL SOURCE CODE' for logical bugs, syntax errors, and undefined variables.
+2. Refactor the code to improve type safety and PEP8 compliance.
+3. Generate a concise, professional commit message for the changes.
+4. Provide a one-sentence explanation of the specific bugs fixed.
+
+Perform the refactor now.
