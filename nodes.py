@@ -1,5 +1,5 @@
 from state import AgentState
-from prompts.refacotr_prompt import RefactorResults
+from prompts.structured_output_types import RefactorResults, ReviewResults
 
 import os
 import requests
@@ -18,7 +18,7 @@ llm = ChatGroq(
 )
 
 
-def discovery(state: AgentState) -> AgentState:
+def discovery_node(state: AgentState) -> AgentState:
     print(f"This is discovery node")
     
     # So I already have the info about the Github repo owner and his repo inside the state dict which I can use to get the entire thing to the state dict using github client
@@ -64,7 +64,7 @@ def discovery(state: AgentState) -> AgentState:
     }
 
 
-def selector(state: AgentState) -> AgentState:
+def selector_node(state: AgentState) -> AgentState:
     """
     So now i need to focus on things for this node
     
@@ -110,14 +110,14 @@ def selector(state: AgentState) -> AgentState:
         }
     }
 
-def refractor(state: AgentState) -> AgentState:
+def refractor_node(state: AgentState) -> AgentState:
     strutured_llm = llm.with_structured_output(RefactorResults)
 
     print(f"This is Refractor node")
-    with open("prompts/refractor_system.txt", "r") as f:
+    with open("prompts/refractor/refractor_system.txt", "r") as f:
         system_content = f.read()
     
-    with open("prompts/refractor_human.txt", "r") as f:
+    with open("prompts/refractor/refractor_human.txt", "r") as f:
         human_content = f.read()
     
     extension = state["current_file"].split(".")[-1]
@@ -142,14 +142,54 @@ def refractor(state: AgentState) -> AgentState:
         "repo_data": {
             state["current_file"]: {
                 "original_code": state["repo_data"][state["current_file"]]["original_code"],
-                "status": "refactored",
                 "refactored_code": result.new_code,
+                "status": "refactored",
                 "commit_message": result.commit_message,
                 "explanation": result.explanation
             }
         }
     }
-    #return state
+
+def reviewer_node(state: AgentState) -> AgentState:
+    print("Inside the reviewer node")
+
+    structured_llm = llm.with_structured_output(ReviewResults)
+
+    with open("prompts/reviewer/reviewer_system.txt", "r") as f:
+        system_content = f.read()
+
+    with open("prompts/reviewer/reviewer_human.txt", "r") as f:
+        human_content = f.read()
+
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", system_content),
+        ("human", human_content)
+    ])
+
+
+    final_prompt = prompt.format_messages(
+        original_code=state["repo_data"][state["current_file"]]["original_code"],
+        refactored_code=state["repo_data"][state["current_file"]]["refactored_code"]
+    )
+
+    result = structured_llm.invoke(final_prompt)
+    return {
+        **state,
+        "repo_data": {
+            state["current_file"]: {
+                "original_code": state["repo_data"][state["current_file"]]["original_code"],
+                "refactored_code": state["repo_data"][state["current_file"]]["refactored_code"],
+                "status": state["repo_data"][state["current_file"]]["status"],
+                "commit_message": state["repo_data"][state["current_file"]]["commit_message"],
+                "explanation": state["repo_data"][state["current_file"]]["explanation"],
+                "review": {
+                    "score": result.score,
+                    "feedback": result.feedback
+                } 
+            }
+        }
+    }
+
 
 def editor(state: AgentState) -> AgentState:
     print(f"This is editor node")

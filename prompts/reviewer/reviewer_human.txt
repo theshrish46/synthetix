@@ -1,0 +1,9 @@
+Compare the following codes and evaluate the refactor.
+
+Original Code:
+{original_code}
+
+Refactored Code:
+{refactored_code}
+
+Return a short verdict and a score (0–10).
