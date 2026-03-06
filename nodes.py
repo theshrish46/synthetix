@@ -13,13 +13,14 @@ from tools.github_tool import github_client
 load_dotenv()
 
 llm = ChatGroq(
-    model="llama-3.3-70b-versatile",
+    #model="llama-3.3-70b-versatile",
+    model="mixtral-8x7b-32768",
     temperature=0.2
 )
 
 
 def discovery_node(state: AgentState) -> AgentState:
-    print(f"This is discovery node")
+    print(f"This is discovery node state is {state}")
     
     # So I already have the info about the Github repo owner and his repo inside the state dict which I can use to get the entire thing to the state dict using github client
 
@@ -40,19 +41,21 @@ def discovery_node(state: AgentState) -> AgentState:
     # Get the tree structure
     tree = repo_obj.get_git_tree(default_branch, recursive=True)
 
+    ALLOWED_EXTENSIONS = {".py", ".c", ".cpp", ".js", ".java", ".ts"}
 
-    files = []
-    IGNORE_EXTENSIONS = {".pyc", ".lock", ".log", ".txt"}
+    files_to_process = []
+    full_tree_paths = []
 
     for item in tree.tree:
-        # Get the file extension
-        _, ext = os.path.splitext(item.path)
+        full_tree_paths.append(item.path)
 
-        # Skip if the extension is in the ignore list
-        if ext.lower() in IGNORE_EXTENSIONS:
-            continue
 
-        files.append(item.path)
+        if item.type == "blob":
+            _, ext = os.path.splitext(item.path)
+
+            if ext.lower() in ALLOWED_EXTENSIONS:
+                files_to_process.append(item.path)
+
 
     return {
         **state,
@@ -60,7 +63,7 @@ def discovery_node(state: AgentState) -> AgentState:
         "base_branch": default_branch,
         "branches": branche_names,
         "file_tree": [item.path for item in tree.tree],
-        "files_to_process": files,
+        "files_to_process": files_to_process,
     }
 
 
@@ -81,13 +84,13 @@ def selector_node(state: AgentState) -> AgentState:
                 original_code from github client
             }
     """
-    print(f"This is inside selector node")
+    print(f"This is inside selector node state is {state}")
     
     on_focus_file = state["files_to_process"][0]
     remaining_files = state["files_to_process"][1:]
     repo = github_client.get_repo(state["repo_id"])
 
-
+    raw_code = ""
     try:
         content_file = repo.get_contents(on_focus_file)
 
@@ -113,7 +116,7 @@ def selector_node(state: AgentState) -> AgentState:
 def refractor_node(state: AgentState) -> AgentState:
     strutured_llm = llm.with_structured_output(RefactorResults)
 
-    print(f"This is Refractor node")
+    print(f"This is Refractor node state is {state}")
     with open("prompts/refractor/refractor_system.txt", "r") as f:
         system_content = f.read()
     
@@ -151,7 +154,7 @@ def refractor_node(state: AgentState) -> AgentState:
     }
 
 def reviewer_node(state: AgentState) -> AgentState:
-    print("Inside the reviewer node")
+    print(f"Inside the reviewer node state is {state}")
 
     structured_llm = llm.with_structured_output(ReviewResults)
 
@@ -192,7 +195,7 @@ def reviewer_node(state: AgentState) -> AgentState:
 
 
 def editor(state: AgentState) -> AgentState:
-    print(f"This is editor node")
+    print(f"This is editor node state is {state}")
     return state
 
 def reviewer(state: AgentState) -> AgentState:
