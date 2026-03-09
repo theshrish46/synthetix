@@ -6,4 +6,4 @@ Original Code:
 Refactored Code:
 {refactored_code}
 
-Return a short verdict and a score (0–10).
+Return a short verdict and a score (0–1).

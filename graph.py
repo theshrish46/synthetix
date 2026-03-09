@@ -1,8 +1,28 @@
+"""
+Nothing important here
+
+This is a test file for simple tests and checking out different things hwo they work out before actually using it
+
+I created and added this thing to the repo because I had no idea of how Langgrah works and this helped me a lot during it so
+
+
+"""
+
+
+
+
+
+
+
+
+
+
+
 import os
 
 from langgraph.graph import StateGraph, START, END
 
-from nodes import discovery_node, selector_node, refractor_node, reviewer_node, editor
+from nodes import discovery_node, selector_node, refractor_node, reviewer_node, pr_manager
 from state import AgentState
 
 
@@ -14,7 +34,7 @@ def check_score_and_files(state: AgentState):
     score = state["repo_data"][state["current_file"]]["review"]["score"]
     files_left = state["files_to_process"]
 
-    if score <= 5.0:
+    if score <= 0.5:
         return "refractor"
     
     if len(files_left) > 0:
@@ -29,7 +49,7 @@ graph.add_node("Discovery", discovery_node)
 graph.add_node("Selector", selector_node)
 graph.add_node("Refractor", refractor_node)
 graph.add_node("Reviewer", reviewer_node)
-graph.add_node("Editor", editor)
+graph.add_node("PR_Manager", pr_manager)
 
 graph.set_entry_point("Discovery")
 
@@ -47,11 +67,11 @@ graph.add_conditional_edges(
     {
         "refractor": "Refractor",
         "selector": "Selector",
-        "move": "Editor"
+        "move": "PR_Manager"
     }
 )
 
-graph.add_edge("Editor", END)
+graph.add_edge("PR_Manager", END)
 
 
 app = graph.compile()

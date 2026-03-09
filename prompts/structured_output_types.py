@@ -9,5 +9,5 @@ class RefactorResults(BaseModel):
 
 
 class ReviewResults(BaseModel):
-    score: float = Field(description="A score from 0.0 to 1.0 based on code quality.")
-    feedback: str = Field(description="Specific feedback if the score is low < 0.5")
+    score: float = Field(description="A score from 0 to 1 based on code quality.")
+    feedback: str = Field(description="Specific feedback if the score is low < 0.5 within 125 chars")
